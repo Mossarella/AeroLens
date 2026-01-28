@@ -224,6 +224,10 @@ export function FlightSearchForm({ onSubmit, isLoading = false }: FlightSearchFo
     return Array.from({ length: max + 1 }, (_, i) => i)
   }
 
+  // Radix Select treats value "0" as empty; use prefixed values for children/infants (default 0)
+  const paxVal = (n: number) => `pax-${n}`
+  const paxNum = (v: string) => parseInt(v.replace(/^pax-/, ''), 10)
+
   return (
     <form
       onSubmit={handleSubmit(onFormSubmit)}
@@ -240,7 +244,10 @@ export function FlightSearchForm({ onSubmit, isLoading = false }: FlightSearchFo
             <div className="grid gap-2 grid-cols-2">
               <Select
                 value={originCountryCode || undefined}
-                onValueChange={(value) => setOriginCountryCode(value)}
+                onValueChange={(value) => {
+                  setOriginCountryCode(value)
+                  setValue('origin', '')
+                }}
               >
                 <SelectTrigger id="origin-country" className="col-span-1">
                   <SelectValue placeholder="Country" />
@@ -254,6 +261,7 @@ export function FlightSearchForm({ onSubmit, isLoading = false }: FlightSearchFo
                 </SelectContent>
               </Select>
               <Select
+                key={originCountryCode || 'origin-no-country'}
                 value={origin || undefined}
                 onValueChange={(value) => {
                   setValue('origin', value)
@@ -296,7 +304,10 @@ export function FlightSearchForm({ onSubmit, isLoading = false }: FlightSearchFo
             <div className="grid gap-2 grid-cols-2">
               <Select
                 value={destinationCountryCode || undefined}
-                onValueChange={(value) => setDestinationCountryCode(value)}
+                onValueChange={(value) => {
+                  setDestinationCountryCode(value)
+                  setValue('destination', '')
+                }}
               >
                 <SelectTrigger id="destination-country" className="col-span-1">
                   <SelectValue placeholder="Country" />
@@ -310,6 +321,7 @@ export function FlightSearchForm({ onSubmit, isLoading = false }: FlightSearchFo
                 </SelectContent>
               </Select>
               <Select
+                key={destinationCountryCode || 'destination-no-country'}
                 value={destination || undefined}
                 onValueChange={(value) => {
                   setValue('destination', value)
@@ -428,12 +440,12 @@ export function FlightSearchForm({ onSubmit, isLoading = false }: FlightSearchFo
 
             <div className="space-y-2">
               <Label htmlFor="children" className="text-xs text-muted-foreground">
-                Children (2-11)
+                Children (Age 2-11)
               </Label>
               <Select
-                value={watch('children').toString()}
+                value={paxVal(watch('children') ?? 0)}
                 onValueChange={(value) => {
-                  setValue('children', parseInt(value, 10))
+                  setValue('children', paxNum(value))
                   trigger('children')
                 }}
               >
@@ -441,11 +453,11 @@ export function FlightSearchForm({ onSubmit, isLoading = false }: FlightSearchFo
                   id="children"
                   className={errors.children ? 'border-destructive' : ''}
                 >
-                  <SelectValue />
+                  <span className="line-clamp-1">{watch('children') ?? 0}</span>
                 </SelectTrigger>
                 <SelectContent>
                   {generateNumberOptions(9).map((num) => (
-                    <SelectItem key={num} value={num.toString()}>
+                    <SelectItem key={num} value={paxVal(num)}>
                       {num}
                     </SelectItem>
                   ))}
@@ -458,12 +470,12 @@ export function FlightSearchForm({ onSubmit, isLoading = false }: FlightSearchFo
 
             <div className="space-y-2">
               <Label htmlFor="infants" className="text-xs text-muted-foreground">
-                Infants (under 2)
+                Infants (Age under 2)
               </Label>
               <Select
-                value={watch('infants').toString()}
+                value={paxVal(watch('infants') ?? 0)}
                 onValueChange={(value) => {
-                  setValue('infants', parseInt(value, 10))
+                  setValue('infants', paxNum(value))
                   trigger('infants')
                 }}
               >
@@ -471,11 +483,11 @@ export function FlightSearchForm({ onSubmit, isLoading = false }: FlightSearchFo
                   id="infants"
                   className={errors.infants ? 'border-destructive' : ''}
                 >
-                  <SelectValue />
+                  <span className="line-clamp-1">{watch('infants') ?? 0}</span>
                 </SelectTrigger>
                 <SelectContent>
                   {generateNumberOptions(9).map((num) => (
-                    <SelectItem key={num} value={num.toString()}>
+                    <SelectItem key={num} value={paxVal(num)}>
                       {num}
                     </SelectItem>
                   ))}

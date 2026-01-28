@@ -6,7 +6,7 @@ import { FlightResults } from "@/components/FlightResults";
 import { PriceGraph } from "@/components/PriceGraph";
 import { Filters } from "@/components/Filters";
 import { useFlightSearch } from "@/hooks/useFlightSearch";
-import { applyAllFilters } from "@/lib/utils";
+import { applyAllFilters, applyStopsAndAirlinesOnly } from "@/lib/utils";
 import { getBestValueFlightId } from "@/lib/bestValue";
 import type { FlightSearchParams, FilterState } from "@/interfaces/flight";
 import { Card, CardContent } from "@/components/ui/card";
@@ -79,6 +79,16 @@ export default function Home() {
     }
   }, [allFlights.length]); // Only run when flights are first loaded
 
+  // Flights matching stops + airlines only (same cohort as price trend before price filter)
+  const flightsForPriceRange = useMemo(() => {
+    if (allFlights.length === 0) return [];
+    return applyStopsAndAirlinesOnly(
+      allFlights,
+      filterState.stops,
+      filterState.airlines
+    );
+  }, [allFlights, filterState.stops, filterState.airlines]);
+
   // Apply filters to flights
   const filteredFlights = useMemo(() => {
     if (allFlights.length === 0) {
@@ -104,9 +114,26 @@ export default function Home() {
     });
   };
 
-  // Handle filter changes
+  // Handle filter changes; recalc price range when stops/airlines change (price trend cohort)
   const handleFilterChange = (newFilterState: FilterState) => {
-    setFilterState(newFilterState);
+    const airlinesChanged =
+      newFilterState.airlines.length !== filterState.airlines.length ||
+      newFilterState.airlines.some((c, i) => c !== filterState.airlines[i]);
+    const cohortChanged =
+      newFilterState.stops !== filterState.stops || airlinesChanged;
+
+    if (cohortChanged) {
+      const cohort = applyStopsAndAirlinesOnly(
+        allFlights,
+        newFilterState.stops,
+        newFilterState.airlines
+      );
+      const priceRange =
+        cohort.length > 0 ? getPriceRange(cohort) : ([0, 1000] as [number, number]);
+      setFilterState({ ...newFilterState, priceRange });
+    } else {
+      setFilterState(newFilterState);
+    }
   };
 
   return (
@@ -183,10 +210,11 @@ export default function Home() {
         {(allFlights.length > 0 || (!loading && searchResponse !== null)) && (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             {/* Filters Sidebar - Desktop: Left, Mobile: Top */}
-            <div className="lg:col-span-1 bg-red-600">
+            <div className="lg:col-span-1">
               <div className="lg:sticky lg:top-8">
                 <Filters
                   flights={allFlights}
+                  flightsForPriceRange={flightsForPriceRange}
                   filterState={filterState}
                   onFilterChange={handleFilterChange}
                   dictionaries={dictionaries}

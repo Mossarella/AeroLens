@@ -16,6 +16,8 @@ import { Filter, Plane } from "lucide-react";
 
 interface FiltersProps {
   flights: FlightOffer[];
+  /** Flights matching stops + airlines only (price trend cohort). Used for slider min/max. */
+  flightsForPriceRange?: FlightOffer[];
   filterState: FilterState;
   onFilterChange: (newState: FilterState) => void;
   dictionaries?: Dictionaries;
@@ -60,19 +62,21 @@ function getAirlineName(code: string, dictionaries?: Dictionaries): string {
 
 export function Filters({
   flights,
+  flightsForPriceRange,
   filterState,
   onFilterChange,
   dictionaries,
 }: FiltersProps) {
-  // Extract available airlines from flights
+  // Extract available airlines from (all) flights
   const availableAirlines = useMemo(() => {
     return getAllAirlineCodes(flights);
   }, [flights]);
 
-  // Calculate price range from flights
+  // Slider min/max from price trend cohort (stops + airlines filtered); recalculates when graph data changes
   const priceRange = useMemo(() => {
-    return getPriceRange(flights);
-  }, [flights]);
+    const source = flightsForPriceRange ?? flights;
+    return getPriceRange(source);
+  }, [flightsForPriceRange, flights]);
 
   // Handle stops filter change
   const handleStopsChange = (stops: FilterState["stops"]) => {

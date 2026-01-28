@@ -116,6 +116,19 @@ export function filterByAirlines(
 }
 
 /**
+ * Apply only stops and airline filters (no price).
+ * Used to derive price slider min/max from the "price trend" cohort (graph data before price filter).
+ */
+export function applyStopsAndAirlinesOnly(
+  flights: FlightOffer[],
+  stops: FilterState["stops"],
+  airlines: string[]
+): FlightOffer[] {
+  const byStops = filterByStops(flights, stops);
+  return filterByAirlines(byStops, airlines);
+}
+
+/**
  * Apply all filters to flight offers
  * @param flights - Array of flight offers
  * @param filterState - Filter state object
