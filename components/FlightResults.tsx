@@ -11,6 +11,7 @@ interface FlightResultsProps {
   flights: FlightOffer[]
   dictionaries?: Dictionaries
   className?: string
+  bestValueFlightId?: string | null
 }
 
 /**
@@ -174,7 +175,7 @@ function getFlightDisplayInfo(flight: FlightOffer, dictionaries?: Dictionaries) 
   }
 }
 
-export function FlightResults({ flights, dictionaries, className }: FlightResultsProps) {
+export function FlightResults({ flights, dictionaries, className, bestValueFlightId }: FlightResultsProps) {
   // Memoize flight display info to avoid recalculating on every render
   const flightDisplayInfo = useMemo(() => {
     return flights.map((flight) => ({
@@ -225,8 +226,20 @@ export function FlightResults({ flights, dictionaries, className }: FlightResult
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-2xl font-bold">{info.formattedPrice}</div>
-                  <div className="text-xs text-muted-foreground">per person</div>
+                  <div className="flex items-center justify-end gap-2">
+                    {flight.id === bestValueFlightId && (
+                      <span
+                        className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-md"
+                        title="Lowest price among flights with ≤1 stop and duration within 20% of the median."
+                      >
+                        Best Value
+                      </span>
+                    )}
+                    <div>
+                      <div className="text-2xl font-bold">{info.formattedPrice}</div>
+                      <div className="text-xs text-muted-foreground">per person</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardHeader>

@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import * as z from 'zod'
@@ -16,21 +17,42 @@ import {
 import type { FlightSearchParams } from '@/interfaces/flight'
 import { Calendar, Plane, Users } from 'lucide-react'
 
+interface CountryOption {
+  code: string
+  name: string
+}
+
+interface AirportOption {
+  iataCode: string
+  name: string
+  cityName?: string
+  countryName?: string
+}
+
+/** Value used when no airports are available for the selected country (invalid for search). */
+const NO_AIRPORTS_PLACEHOLDER = '__no_airports__'
+
 // Zod schema for form validation
 const flightSearchSchema = z
   .object({
     origin: z
       .string()
-      .min(3, 'Origin must be at least 3 characters')
-      .max(3, 'Origin must be a 3-letter airport code')
-      .regex(/^[A-Z]{3}$/i, 'Origin must be a valid 3-letter airport code (e.g., JFK)')
-      .transform((val) => val.toUpperCase()),
+      .transform((val) => (val ?? '').toUpperCase())
+      .refine((val) => val !== NO_AIRPORTS_PLACEHOLDER.toUpperCase(), {
+        message: 'No airports available for this country. Please choose another country.',
+      })
+      .refine((val) => val.length === 3 && /^[A-Z]{3}$/.test(val), {
+        message: 'Please select an origin airport',
+      }),
     destination: z
       .string()
-      .min(3, 'Destination must be at least 3 characters')
-      .max(3, 'Destination must be a 3-letter airport code')
-      .regex(/^[A-Z]{3}$/i, 'Destination must be a valid 3-letter airport code (e.g., LAX)')
-      .transform((val) => val.toUpperCase()),
+      .transform((val) => (val ?? '').toUpperCase())
+      .refine((val) => val !== NO_AIRPORTS_PLACEHOLDER.toUpperCase(), {
+        message: 'No airports available for this country. Please choose another country.',
+      })
+      .refine((val) => val.length === 3 && /^[A-Z]{3}$/.test(val), {
+        message: 'Please select a destination airport',
+      }),
     departureDate: z
       .string()
       .min(1, 'Departure date is required')
@@ -112,8 +134,62 @@ export function FlightSearchForm({ onSubmit, isLoading = false }: FlightSearchFo
     },
   })
 
+  const [countries, setCountries] = useState<CountryOption[]>([])
+  const [originCountryCode, setOriginCountryCode] = useState<string>('')
+  const [destinationCountryCode, setDestinationCountryCode] = useState<string>('')
+  const [originAirports, setOriginAirports] = useState<AirportOption[]>([])
+  const [destinationAirports, setDestinationAirports] = useState<AirportOption[]>([])
+  const [loadingOriginAirports, setLoadingOriginAirports] = useState(false)
+  const [loadingDestinationAirports, setLoadingDestinationAirports] = useState(false)
+
   const returnDate = watch('returnDate')
   const departureDate = watch('departureDate')
+  const origin = watch('origin')
+  const destination = watch('destination')
+
+  // Fetch countries on mount
+  useEffect(() => {
+    fetch('/api/locations/countries')
+      .then((res) => res.json())
+      .then((data: CountryOption[]) => setCountries(Array.isArray(data) ? data : []))
+      .catch(() => setCountries([]))
+  }, [])
+
+  // When origin country changes: clear origin, fetch airports for that country
+  useEffect(() => {
+    if (!originCountryCode) {
+      setOriginAirports([])
+      setValue('origin', '')
+      return
+    }
+    setValue('origin', '')
+    setLoadingOriginAirports(true)
+    fetch(`/api/locations/airports?countryCode=${encodeURIComponent(originCountryCode)}`)
+      .then((res) => res.json())
+      .then((data: { airports?: AirportOption[] }) => {
+        setOriginAirports(Array.isArray(data?.airports) ? data.airports : [])
+      })
+      .catch(() => setOriginAirports([]))
+      .finally(() => setLoadingOriginAirports(false))
+  }, [originCountryCode, setValue])
+
+  // When destination country changes: clear destination, fetch airports for that country
+  useEffect(() => {
+    if (!destinationCountryCode) {
+      setDestinationAirports([])
+      setValue('destination', '')
+      return
+    }
+    setValue('destination', '')
+    setLoadingDestinationAirports(true)
+    fetch(`/api/locations/airports?countryCode=${encodeURIComponent(destinationCountryCode)}`)
+      .then((res) => res.json())
+      .then((data: { airports?: AirportOption[] }) => {
+        setDestinationAirports(Array.isArray(data?.airports) ? data.airports : [])
+      })
+      .catch(() => setDestinationAirports([]))
+      .finally(() => setLoadingDestinationAirports(false))
+  }, [destinationCountryCode, setValue])
 
   // Handle form submission
   const onFormSubmit = (data: FlightSearchFormData) => {
@@ -154,37 +230,115 @@ export function FlightSearchForm({ onSubmit, isLoading = false }: FlightSearchFo
       className="w-full space-y-6 rounded-lg border bg-card p-6 shadow-sm"
     >
       <div className="space-y-4">
-        {/* Origin and Destination */}
+        {/* Origin: Country → Airport */}
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="origin" className="flex items-center gap-2">
+            <Label className="flex items-center gap-2">
               <Plane className="h-4 w-4" />
               From
             </Label>
-            <Input
-              id="origin"
-              placeholder="JFK"
-              maxLength={3}
-              className={errors.origin ? 'border-destructive' : ''}
-              {...register('origin')}
-            />
+            <div className="grid gap-2 grid-cols-2">
+              <Select
+                value={originCountryCode || undefined}
+                onValueChange={(value) => setOriginCountryCode(value)}
+              >
+                <SelectTrigger id="origin-country" className="col-span-1">
+                  <SelectValue placeholder="Country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={origin || undefined}
+                onValueChange={(value) => {
+                  setValue('origin', value)
+                  trigger('origin')
+                }}
+                disabled={!originCountryCode || loadingOriginAirports}
+              >
+                <SelectTrigger
+                  id="origin"
+                  className={`col-span-1 ${errors.origin ? 'border-destructive' : ''}`}
+                >
+                  <SelectValue placeholder={loadingOriginAirports ? 'Loading…' : 'Airport'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {!loadingOriginAirports && originAirports.length === 0 ? (
+                    <SelectItem value={NO_AIRPORTS_PLACEHOLDER} disabled>
+                      No available airport at the moment
+                    </SelectItem>
+                  ) : (
+                    originAirports.map((a) => (
+                      <SelectItem key={a.iataCode} value={a.iataCode}>
+                        {a.iataCode} – {a.name}
+                        {a.cityName ? ` (${a.cityName})` : ''}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
             {errors.origin && (
               <p className="text-sm text-destructive">{errors.origin.message}</p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="destination" className="flex items-center gap-2">
+            <Label className="flex items-center gap-2">
               <Plane className="h-4 w-4 rotate-90" />
               To
             </Label>
-            <Input
-              id="destination"
-              placeholder="LAX"
-              maxLength={3}
-              className={errors.destination ? 'border-destructive' : ''}
-              {...register('destination')}
-            />
+            <div className="grid gap-2 grid-cols-2">
+              <Select
+                value={destinationCountryCode || undefined}
+                onValueChange={(value) => setDestinationCountryCode(value)}
+              >
+                <SelectTrigger id="destination-country" className="col-span-1">
+                  <SelectValue placeholder="Country" />
+                </SelectTrigger>
+                <SelectContent>
+                  {countries.map((c) => (
+                    <SelectItem key={c.code} value={c.code}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select
+                value={destination || undefined}
+                onValueChange={(value) => {
+                  setValue('destination', value)
+                  trigger('destination')
+                }}
+                disabled={!destinationCountryCode || loadingDestinationAirports}
+              >
+                <SelectTrigger
+                  id="destination"
+                  className={`col-span-1 ${errors.destination ? 'border-destructive' : ''}`}
+                >
+                  <SelectValue placeholder={loadingDestinationAirports ? 'Loading…' : 'Airport'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {!loadingDestinationAirports && destinationAirports.length === 0 ? (
+                    <SelectItem value={NO_AIRPORTS_PLACEHOLDER} disabled>
+                      No available airport at the moment
+                    </SelectItem>
+                  ) : (
+                    destinationAirports.map((a) => (
+                      <SelectItem key={a.iataCode} value={a.iataCode}>
+                        {a.iataCode} – {a.name}
+                        {a.cityName ? ` (${a.cityName})` : ''}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
             {errors.destination && (
               <p className="text-sm text-destructive">{errors.destination.message}</p>
             )}

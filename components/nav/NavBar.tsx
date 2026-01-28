@@ -57,7 +57,7 @@ export default function Navbar() {
         <div className=" flex items-center space-x-4 h-full">
           <Link href="/contact">
             <Button
-              className=" rounded-full bg-[var(--primary)] hover:bg-[var(--primary2)] text-[var(--black)]"
+              className=" rounded-full "
               variant="outline"
             >
               <Phone className="mr-2 h-4 w-4" />
