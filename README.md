@@ -103,5 +103,5 @@ Or deploy to [Vercel](https://vercel.com) (or similar) and configure the environ
 ![Preview 2](public/images/mock2.png)
 
 \
-_Created by Mossarelladev, 2024_.\
+_Created by Mossarelladev, 2026_.\
 Thanks for sticking to here ⭐
