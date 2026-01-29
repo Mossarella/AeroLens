@@ -244,9 +244,9 @@ function processFlightData(
 }
 
 /** Enable horizontal scroll when data points exceed this count. */
-const SCROLL_THRESHOLD = 40;
-/** Pixel width per data point when scroll is active. */
-const PX_PER_POINT = 10;
+const SCROLL_THRESHOLD = 20;
+/** Pixel width per data point when scroll is active (more space = less cramped). */
+const PX_PER_POINT = 22;
 
 export function PriceGraph({
   flights,
@@ -260,6 +260,14 @@ export function PriceGraph({
 
   const useScroll = chartData.length > SCROLL_THRESHOLD;
   const chartWidth = useScroll ? chartData.length * PX_PER_POINT : undefined;
+  /** Show fewer X-axis ticks when many points to avoid clutter. */
+  const xAxisInterval =
+    chartData.length > 25
+      ? Math.max(1, Math.floor(chartData.length / 12))
+      : 0;
+  /** Always show dots; use smaller radius when many points to avoid clutter. */
+  const dotRadius = chartData.length > 50 ? 2 : chartData.length > 30 ? 3 : 4;
+  const dotConfig = { fill: "var(--primary)", r: dotRadius };
 
   // Calculate price range for Y-axis
   const priceRange = useMemo(() => {
@@ -307,15 +315,18 @@ export function PriceGraph({
           {chartData.length === 1 ? "flight" : "flights"})
         </p>
       </CardHeader>
-      <CardContent className="pb-4">
+      <CardContent className="pb-4 min-w-0">
         <div
           className={cn(
             "mt-1",
             useScroll &&
-              "overflow-x-auto overflow-y-hidden overscroll-x-contain"
+              "w-full min-w-0 overflow-x-auto overflow-y-hidden overscroll-x-contain"
           )}
         >
-          <div style={useScroll ? { minWidth: chartWidth } : undefined}>
+          <div
+            className={useScroll ? "inline-block" : ""}
+            style={useScroll ? { minWidth: chartWidth } : undefined}
+          >
             <ResponsiveContainer
               width={useScroll ? chartWidth! : "100%"}
               height={300}
@@ -340,7 +351,7 @@ export function PriceGraph({
                   angle={-45}
                   textAnchor="end"
                   height={48}
-                  interval="preserveStartEnd"
+                  interval={xAxisInterval}
                 />
                 <YAxis
                   domain={[priceRange.min, priceRange.max]}
@@ -381,7 +392,7 @@ export function PriceGraph({
                   dataKey="priceValue"
                   stroke="var(--primary)"
                   strokeWidth={2}
-                  dot={{ fill: "var(--primary)", r: 4 }}
+                  dot={dotConfig}
                   activeDot={{ r: 6 }}
                 />
               </LineChart>
