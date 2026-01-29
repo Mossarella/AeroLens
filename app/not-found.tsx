@@ -9,11 +9,12 @@ export default function NotFound() {
   const router = useRouter();
 
   const handleGoBack = () => {
-    router.back(); // Navigate back to the previous page in history
+    // router.back(); // Navigate back to the previous page in history
+    router.push("/");
   };
 
   return (
-    <div className="flex flex-1 text-sm text-balance  h-full flex-col items-center justify-center gap-2">
+    <div className="flex flex-1 flex-col items-center justify-center gap-2 container mx-auto px-4 max-w-7xl text-sm text-balance min-h-0">
       <h2 className=" font-semibold">404 Not Found</h2>
       <p>Could not find the requested path :(</p>
       <Button
@@ -21,11 +22,11 @@ export default function NotFound() {
           handleGoBack();
         }}
         className={cn(
-          "mt-2 w-full rounded-full bg-[var(--primary)] hover:bg-[var(--primary2)] text-[var(--black)]  "
+          "mt-2 w-auto rounded-full bg-background hover:bg-primary hover:text-primary-foreground  "
         )}
         variant="outline"
       >
-        Go Back
+        Back to Home
       </Button>
     </div>
   );

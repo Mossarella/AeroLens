@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+/*
+ * ┌─────────────────────────────────────────────────────────────────────────┐
+ * │ @theme = TELLS TAILWIND what class names mean.                          │
+ * │   You write: --color-background: hsl(var(--background));                 │
+ * │   So that   bg-background   in your HTML uses that color.               │
+ * │   @theme does NOT store the actual color values — it just wires names.  │
+ * ├─────────────────────────────────────────────────────────────────────────┤
+ * │ @layer base = THE ACTUAL VALUES + global CSS.                            │
+ * │   :root     = default (light) values, e.g. --background: 0 0% 100%;      │
+ * │   .dark     = when <html class="dark">, these override :root.           │
+ * │   *, body   = reset and base styles that use those variables.           │
+ * │   So the real numbers live here; @theme just points at them.             │
+ * └─────────────────────────────────────────────────────────────────────────┘
+ */
 @theme {
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
@@ -22,6 +36,12 @@
   --color-ring: hsl(var(--ring));
 }
 
+/*
+ * Dark mode: add class "dark" to <html> to use .dark variables.
+ * Example: <html lang="en" className="dark"> (or toggle via JS).
+ * All uses of hsl(var(--background)), bg-background, text-foreground, etc.
+ * then automatically use the dark theme values.
+ */
 @layer base {
   :root {
     --background: 0 0% 100%;

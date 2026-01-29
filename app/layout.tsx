@@ -10,6 +10,7 @@ import {
   inter,
   lato,
   poppins,
+  yellowtail,
 } from "@/public/fonts/fontproperty";
 export { metadata } from "@/metadata/metadata";
 
@@ -21,15 +22,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${lato.variable} ${poppins.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${lato.variable} ${poppins.variable} ${yellowtail.variable} antialiased min-h-screen flex flex-col`}
       >
-        <nav className="flex flex-col items-center">
+        <nav className="flex flex-col items-center shrink-0">
           <NavBar></NavBar>
         </nav>
-        <main>
+        <main className="flex-1 flex flex-col min-h-0">
           <Suspense fallback={<LoadingPage />}>{children}</Suspense>
         </main>
-        <footer className="flex flex-col w-full flex-1 items-center">
+        <footer className="flex flex-col w-full shrink-0 items-center">
           <Footer></Footer>
         </footer>
       </body>

@@ -10,7 +10,7 @@ import Image from "next/image";
 
 export default function Navbar() {
   return (
-    <div className=" w-full px-4 sm:px-6 lg:px-8 h-[64px] max-w-[1800px] ">
+    <div className=" w-full  h-[64px]  container mx-auto px-4 max-w-7xl    ">
       <div className=" justify-between w-full flex h-16 items-center  mx-auto">
         <Link
           href="/"

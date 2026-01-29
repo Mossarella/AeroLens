@@ -33,9 +33,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (err) {
     console.log("armadeus call error");
-    // if (process.env.NODE_ENV === 'development') {
+    // if (process.env.NODE_ENV === "development") {
     //   console.warn(
-    //     '[flights/search] Amadeus API unavailable, using mock data:',
+    //     "[flights/search] Amadeus API unavailable, using mock data:",
     //     err instanceof Error ? err.message : err
     //   );
     // }

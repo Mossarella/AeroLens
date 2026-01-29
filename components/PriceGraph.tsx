@@ -116,7 +116,16 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
     }).format(price)
     
     return (
-      <div className="bg-background border border-border rounded-lg shadow-lg p-3 min-w-50">
+      <div
+        className="border border-border rounded-lg shadow-lg p-3 min-w-50"
+        style={{
+          position: 'relative',
+          zIndex: 1000,
+          backgroundColor: 'hsl(var(--card))',
+          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+          isolation: 'isolate',
+        }}
+      >
         <p className="font-semibold text-sm mb-2">{label}</p>
         <div className="space-y-1 text-xs">
           <div className="flex justify-between">
@@ -231,6 +240,11 @@ function processFlightData(
     .sort((a, b) => a.timeValue - b.timeValue) // Sort by departure time
 }
 
+/** Enable horizontal scroll when data points exceed this count. */
+const SCROLL_THRESHOLD = 40
+/** Pixel width per data point when scroll is active. */
+const PX_PER_POINT = 10
+
 export function PriceGraph({
   flights,
   dictionaries,
@@ -240,6 +254,9 @@ export function PriceGraph({
   const chartData = useMemo(() => {
     return processFlightData(flights, dictionaries)
   }, [flights, dictionaries])
+
+  const useScroll = chartData.length > SCROLL_THRESHOLD
+  const chartWidth = useScroll ? chartData.length * PX_PER_POINT : undefined
 
   // Calculate price range for Y-axis
   const priceRange = useMemo(() => {
@@ -286,53 +303,80 @@ export function PriceGraph({
         </p>
       </CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart
-            data={chartData}
-            margin={{
-              top: 5,
-              right: 20,
-              left: 10,
-              bottom: 5,
-            }}
-          >
-            <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-            <XAxis
-              dataKey="time"
-              className="text-xs"
-              tick={{ fill: 'currentColor', fontSize: 12 }}
-              angle={-45}
-              textAnchor="end"
-              height={80}
-              interval="preserveStartEnd"
-            />
-            <YAxis
-              domain={[priceRange.min, priceRange.max]}
-              className="text-xs"
-              tick={{ fill: 'currentColor', fontSize: 12 }}
-              tickFormatter={(value) => {
-                // Format Y-axis labels with currency symbol
-                const currency = chartData[0]?.currency || 'USD'
-                return new Intl.NumberFormat('en-US', {
-                  style: 'currency',
-                  currency: currency,
-                  minimumFractionDigits: 0,
-                  maximumFractionDigits: 0,
-                }).format(value)
-              }}
-              width={80}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Line
-              type="monotone"
-              dataKey="priceValue"
-              stroke="hsl(var(--primary))"
-              strokeWidth={2}
-              dot={{ fill: 'hsl(var(--primary))', r: 4 }}
-              activeDot={{ r: 6 }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        <div
+          className={cn(
+            useScroll && 'overflow-x-auto overflow-y-hidden overscroll-x-contain'
+          )}
+        >
+          <div style={useScroll ? { minWidth: chartWidth } : undefined}>
+            <ResponsiveContainer
+              width={useScroll ? chartWidth! : '100%'}
+              height={300}
+            >
+              <LineChart
+                data={chartData}
+                margin={{
+                  top: 5,
+                  right: 20,
+                  left: 10,
+                  bottom: 5,
+                }}
+              >
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis
+                  dataKey="time"
+                  className="text-xs"
+                  tick={{ fill: 'currentColor', fontSize: 12 }}
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  interval="preserveStartEnd"
+                />
+                <YAxis
+                  domain={[priceRange.min, priceRange.max]}
+                  className="text-xs"
+                  tick={{ fill: 'currentColor', fontSize: 12 }}
+                  tickFormatter={(value) => {
+                    const currency = chartData[0]?.currency || 'USD'
+                    return new Intl.NumberFormat('en-US', {
+                      style: 'currency',
+                      currency: currency,
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    }).format(value)
+                  }}
+                  width={80}
+                />
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={false}
+                  wrapperStyle={{
+                    zIndex: 1000,
+                    backgroundColor: 'hsl(var(--card))',
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '0.5rem',
+                    boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
+                    outline: 'none',
+                  }}
+                  contentStyle={{
+                    zIndex: 1000,
+                    backgroundColor: 'hsl(var(--card))',
+                    border: 'none',
+                    padding: 0,
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="priceValue"
+                  stroke="hsl(var(--primary))"
+                  strokeWidth={2}
+                  dot={{ fill: 'hsl(var(--primary))', r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )

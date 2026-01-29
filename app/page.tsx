@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle, Loader2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { FlightOffer } from "@/interfaces/flight";
+import { MOCK_FLIGHT_SEARCH_RESPONSE } from "@/lib/mockdata/mock-data";
 
 /**
  * Calculate price range from flight offers
@@ -68,7 +69,9 @@ export default function Home() {
   });
 
   // Get flights data from search response
-  const allFlights = searchResponse?.data || [];
+  // const allFlights = searchResponse?.data || [];
+  const allFlights = searchResponse?.data || MOCK_FLIGHT_SEARCH_RESPONSE.data;
+
   const dictionaries = searchResponse?.dictionaries;
 
   // Initialize filter state when flights are loaded
@@ -129,7 +132,9 @@ export default function Home() {
         newFilterState.airlines
       );
       const priceRange =
-        cohort.length > 0 ? getPriceRange(cohort) : ([0, 1000] as [number, number]);
+        cohort.length > 0
+          ? getPriceRange(cohort)
+          : ([0, 1000] as [number, number]);
       setFilterState({ ...newFilterState, priceRange });
     } else {
       setFilterState(newFilterState);
@@ -137,12 +142,12 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="  min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Flight Search</h1>
-          <p className="text-muted-foreground">
+        <div className="mb-8 ">
+          <h1 className="text-4xl font-bold mb-2 text-center">Flight Search</h1>
+          <p className="font-[family-name:var(--font-yellowtail)] text-muted-foreground text-center text-2xl">
             Find the best flight deals for your next trip
           </p>
         </div>
