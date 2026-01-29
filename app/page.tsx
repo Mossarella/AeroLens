@@ -7,7 +7,6 @@ import { PriceGraph } from "@/components/PriceGraph";
 import { Filters } from "@/components/Filters";
 import { useFlightSearch } from "@/hooks/useFlightSearch";
 import { applyAllFilters, applyStopsAndAirlinesOnly } from "@/lib/utils";
-import { getBestValueFlightId } from "@/lib/bestValue";
 import type { FlightSearchParams, FilterState } from "@/interfaces/flight";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -99,12 +98,6 @@ export default function Home() {
     }
     return applyAllFilters(allFlights, filterState);
   }, [allFlights, filterState]);
-
-  // Best Value recommendation (lowest price within reasonable constraints)
-  const bestValueFlightId = useMemo(
-    () => getBestValueFlightId(filteredFlights),
-    [filteredFlights]
-  );
 
   // Handle search form submission
   const handleSearch = (params: FlightSearchParams) => {
@@ -239,7 +232,6 @@ export default function Home() {
               <FlightResults
                 flights={filteredFlights}
                 dictionaries={dictionaries}
-                bestValueFlightId={bestValueFlightId}
               />
             </div>
           </div>

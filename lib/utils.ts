@@ -11,7 +11,7 @@ export function cn(...inputs: ClassValue[]) {
  * @param flight - The flight offer
  * @returns Total number of stops across all segments
  */
-export function getTotalStops(flight: FlightOffer): number {
+function getTotalStops(flight: FlightOffer): number {
   return flight.itineraries.reduce((total, itinerary) => {
     return (
       total +

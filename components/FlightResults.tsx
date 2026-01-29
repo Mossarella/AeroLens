@@ -1,18 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { FlightOffer, Dictionaries } from "@/interfaces/flight";
 import { getAirlineCodes } from "@/lib/utils";
 import { Plane, Clock, MapPin, DollarSign } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import html2canvas from "html2canvas-pro";
 
 interface FlightResultsProps {
   flights: FlightOffer[];
   dictionaries?: Dictionaries;
   className?: string;
-  bestValueFlightId?: string | null;
 }
 
 /**
@@ -186,7 +186,6 @@ export function FlightResults({
   flights,
   dictionaries,
   className,
-  bestValueFlightId,
 }: FlightResultsProps) {
   // Memoize flight display info to avoid recalculating on every render
   const flightDisplayInfo = useMemo(() => {
@@ -195,6 +194,34 @@ export function FlightResults({
       info: getFlightDisplayInfo(flight, dictionaries),
     }));
   }, [flights, dictionaries]);
+
+  const handleDownloadTicket = useCallback(
+    async (
+      element: HTMLDivElement,
+      departureAirport: string,
+      arrivalAirport: string
+    ) => {
+      try {
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          backgroundColor: "#ffffff",
+          useCORS: true,
+        });
+        canvas.toBlob((blob: Blob | null) => {
+          if (!blob) return;
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = `boarding-pass-${departureAirport}-${arrivalAirport}.png`;
+          a.click();
+          URL.revokeObjectURL(url);
+        });
+      } catch (err) {
+        console.error("Failed to capture ticket as image:", err);
+      }
+    },
+    []
+  );
 
   if (flights.length === 0) {
     return (
@@ -215,192 +242,202 @@ export function FlightResults({
 
   return (
     <div className={cn("space-y-4", className)}>
-      <div className="mb-4">
+      <div className="mb-4 flex flex-row gap-x-4 items-baseline ">
         <h2 className="text-2xl font-semibold">
           {flights.length} {flights.length === 1 ? "flight" : "flights"} found
         </h2>
+        <p className="text-sm text-muted-foreground text-center max-w-md">
+          Click on the flight to download the boarding pass :D
+        </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
         {flightDisplayInfo.map(({ flight, info }) => (
           <div
             key={flight.id}
-            className="hover:drop-shadow-lg transition-[filter] flex flex-row w-full"
+            className="flex justify-center overflow-x-auto"
           >
-            <Card className="  flex flex-row  py-4">
-              <div className="shrink-0 w-[90px]  h-full flex items-center justify-center">
-                <Image
-                  src="/images/barcode.svg"
-                  alt="barcode"
-                  // width={120}
-                  // height={100}
-                  fill
-                  className=" object-contain "
-                />
-              </div>
-            </Card>
-            <Card
-              key={flight.id}
-              className=" flex-1 flex flex-row gap-x-4"
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={(e) =>
+                handleDownloadTicket(
+                  e.currentTarget,
+                  info.departureAirport,
+                  info.arrivalAirport
+                )
+              }
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  (e.currentTarget as HTMLDivElement).click();
+                }
+              }}
+              className="w-full cursor-pointer hover:drop-shadow-lg transition-[filter] flex flex-row"
+              title="Click to download"
             >
-              <div className=" flex-1">
-                <CardHeader className="pb-3">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Plane className="h-4 w-4 text-primary" />
-                        <span className="font-semibold text-sm text-muted-foreground">
-                          {info.airlineNames}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                        <span>{info.departureDate}</span>
-                        {info.totalStops > 0 && (
-                          <span className="px-2 py-1 bg-muted rounded-md text-xs">
-                            {info.stopsText}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {flight.id === bestValueFlightId && (
-                          <span
-                            className="px-2 py-1 bg-primary/10 text-primary text-xs font-medium rounded-md"
-                            title="Lowest price among flights with ≤1 stop and duration within 20% of the median."
-                          >
-                            Best Value
-                          </span>
-                        )}
-                        <div>
-                          <div className="text-2xl font-bold">
-                            {info.formattedPrice}
-                          </div>
-                          <div className="text-xs text-muted-foreground">
-                            per person
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="flex flex-row  gap-x-16">
-                  <div className="space-y-4  flex-1">
-                    {/* Outbound Flight */}
-                    <div className="flex items-center gap-4 ">
+              <Card className="  flex flex-row  py-4">
+                <div className="shrink-0 w-[90px]  h-full flex items-center justify-center">
+                  <Image
+                    src="/images/barcode.svg"
+                    alt="barcode"
+                    // width={120}
+                    // height={100}
+                    fill
+                    className=" object-contain "
+                  />
+                </div>
+              </Card>
+              <Card
+                key={flight.id}
+                className=" flex-1 flex flex-row gap-x-0"
+              >
+                <div className=" flex-1">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          <span className="font-semibold text-lg">
-                            {info.departureAirport}
+                        <div className="flex items-center gap-2 mb-2">
+                          <Plane className="h-4 w-4 text-primary" />
+                          <span className="font-semibold text-sm text-muted-foreground">
+                            {info.airlineNames}
                           </span>
                         </div>
-                        <div className="text-sm text-muted-foreground">
-                          {info.departureTime}
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                          <span>{info.departureDate}</span>
+                          {info.totalStops > 0 && (
+                            <span className="px-2 py-1 bg-muted rounded-md text-xs">
+                              {info.stopsText}
+                            </span>
+                          )}
                         </div>
                       </div>
-
-                      <div className="flex flex-col items-center shrink-0">
-                        <div className="flex items-center gap-2 w-full">
-                          <div className="h-px bg-border flex-1"></div>
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <div className="h-px bg-border flex-1"></div>
+                      <div className="text-right">
+                        <div className="text-2xl font-bold">
+                          {info.formattedPrice}
                         </div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {info.duration}
-                        </div>
-                      </div>
-
-                      <div className="flex-1 text-right">
-                        <div className="flex items-center justify-end gap-2 mb-1">
-                          <span className="font-semibold text-lg">
-                            {info.arrivalAirport}
-                          </span>
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {info.arrivalTime}
+                        <div className="text-xs text-muted-foreground">
+                          per person
                         </div>
                       </div>
                     </div>
+                  </CardHeader>
 
-                    {/* Return Flight (if exists) */}
-                    {info.returnItinerary && (
-                      <>
-                        <div className="h-px bg-border"></div>
-                        <div className="flex items-center gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-semibold text-lg">
-                                {info.arrivalAirport}
-                              </span>
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              Return flight
-                            </div>
+                  <CardContent className="flex flex-row  gap-x-16">
+                    <div className="space-y-4  flex-1">
+                      {/* Outbound Flight */}
+                      <div className="flex items-center gap-8 ">
+                        <div className="shrink-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-semibold text-lg">
+                              {info.departureAirport}
+                            </span>
                           </div>
-
-                          <div className="flex flex-col items-center shrink-0">
-                            <div className="flex items-center gap-2 w-full">
-                              <div className="h-px bg-border flex-1"></div>
-                              <Clock className="h-4 w-4 text-muted-foreground" />
-                              <div className="h-px bg-border flex-1"></div>
-                            </div>
-                            <div className="text-xs text-muted-foreground mt-1">
-                              {info.returnItinerary.duration}
-                            </div>
-                          </div>
-
-                          <div className="flex-1 text-right">
-                            <div className="flex items-center justify-end gap-2 mb-1">
-                              <span className="font-semibold text-lg">
-                                {info.departureAirport}
-                              </span>
-                              <MapPin className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {info.returnItinerary.segments}{" "}
-                              {info.returnItinerary.segments === 1
-                                ? "segment"
-                                : "segments"}
-                            </div>
+                          <div className="text-sm text-muted-foreground">
+                            {info.departureTime}
                           </div>
                         </div>
-                      </>
-                    )}
 
-                    {/* Flight Details Footer */}
-                    <div className="pt-2 border-t">
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <div className="flex items-center gap-4">
-                          {info.totalStops === 0 && (
-                            <span className="text-green-600 dark:text-green-400 font-medium">
-                              Direct flight
+                        <div className="flex flex-1 flex-col items-center">
+                          <div className="flex items-center gap-2 w-full">
+                            <div className="h-px bg-border flex-1"></div>
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                            <div className="h-px bg-border flex-1"></div>
+                          </div>
+                          <div className="text-[10px] text-muted-foreground mt-1">
+                            {info.duration}
+                          </div>
+                        </div>
+
+                        <div className="shrink-0 text-right">
+                          <div className="flex items-center justify-end gap-2 mb-1">
+                            <span className="font-semibold text-lg">
+                              {info.arrivalAirport}
                             </span>
-                          )}
-                          {flight.numberOfBookableSeats !== undefined && (
+                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {info.arrivalTime}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Return Flight (if exists) */}
+                      {info.returnItinerary && (
+                        <>
+                          <div className="h-px bg-border"></div>
+                          <div className="flex items-center gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                <span className="font-semibold text-lg">
+                                  {info.arrivalAirport}
+                                </span>
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                Return flight
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col items-center shrink-0">
+                              <div className="flex items-center gap-2 w-full">
+                                <div className="h-px bg-border flex-1"></div>
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <div className="h-px bg-border flex-1"></div>
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {info.returnItinerary.duration}
+                              </div>
+                            </div>
+
+                            <div className="flex-1 text-right">
+                              <div className="flex items-center justify-end gap-2 mb-1">
+                                <span className="font-semibold text-lg">
+                                  {info.departureAirport}
+                                </span>
+                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {info.returnItinerary.segments}{" "}
+                                {info.returnItinerary.segments === 1
+                                  ? "segment"
+                                  : "segments"}
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Flight Details Footer */}
+                      <div className="pt-2 border-t">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <div className="flex items-center gap-4">
+                            {info.totalStops === 0 && (
+                              <span className="text-green-600 dark:text-green-400 font-medium">
+                                Direct flight
+                              </span>
+                            )}
+                            {flight.numberOfBookableSeats !== undefined && (
+                              <span>
+                                {flight.numberOfBookableSeats}{" "}
+                                {flight.numberOfBookableSeats === 1
+                                  ? "seat"
+                                  : "seats"}{" "}
+                                available
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-3 w-3" />
                             <span>
-                              {flight.numberOfBookableSeats}{" "}
-                              {flight.numberOfBookableSeats === 1
-                                ? "seat"
-                                : "seats"}{" "}
-                              available
+                              Base: {flight.price.base} {flight.price.currency}
                             </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <DollarSign className="h-3 w-3" />
-                          <span>
-                            Base: {flight.price.base} {flight.price.currency}
-                          </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-                {/* <CardContent className="flex flex-row ">
+                  </CardContent>
+                  {/* <CardContent className="flex flex-row ">
                   <div className="relative w-full min-h-[20px] flex-1">
                     <Image
                       src="/images/floor.svg"
@@ -411,33 +448,34 @@ export function FlightResults({
                     />
                   </div>
                 </CardContent> */}
-              </div>
-              <div className=" flex flex-col items-end justify-between shrink-1  gap-0">
-                <CardHeader className=" w-full  h-auto flex-1   flex flex-col items-center justify-center">
-                  <Image
-                    src="/images/finish.svg"
-                    alt="finish"
-                    width={100}
-                    height={100}
-                    // fill
-                    className=" object-contain opacity-80 "
-                  />
-                  <p className="  tracking-[0.3em] pt-[5px] leading-1 text-xs h-full  w-full  text-center ">
-                    Aerolens
-                  </p>
-                </CardHeader>
-                <CardContent className=" h-auto shrink-0 opacity-80  flex items-center justify-center">
-                  <Image
-                    src="/images/arrow.svg"
-                    alt="arrow"
-                    width={100}
-                    height={100}
-                    // fill
-                    className=" object-contain"
-                  />
-                </CardContent>
-              </div>
-            </Card>
+                </div>
+                <div className=" flex flex-col items-end justify-between shrink-1  gap-0">
+                  <CardHeader className=" w-full  h-auto flex-1   flex flex-col items-center justify-center">
+                    <Image
+                      src="/images/finish.svg"
+                      alt="finish"
+                      width={100}
+                      height={100}
+                      // fill
+                      className=" object-contain opacity-80 "
+                    />
+                    <p className="  tracking-[0.3em] pt-[5px] leading-1 text-xs h-full  w-full  text-center ">
+                      Aerolens
+                    </p>
+                  </CardHeader>
+                  <CardContent className=" h-auto shrink-0 opacity-80  flex items-center justify-center">
+                    <Image
+                      src="/images/arrow.svg"
+                      alt="arrow"
+                      width={100}
+                      height={100}
+                      // fill
+                      className=" object-contain"
+                    />
+                  </CardContent>
+                </div>
+              </Card>
+            </div>
           </div>
         ))}
       </div>
