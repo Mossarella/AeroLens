@@ -132,18 +132,18 @@ export function Filters({
   ];
 
   return (
-    <Card className="w-full h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Filter className="h-5 w-5" />
+    <Card className="w-full rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+      <CardHeader className="pb-4 border-b border-border">
+        <CardTitle className="flex items-center gap-2 text-lg font-semibold text-foreground">
+          <Filter className="h-4 w-4 text-primary/80" />
           Filters
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-6 p-4 sm:p-6">
         {/* Stops Filter */}
         <div className="space-y-3">
-          <Label className="text-base font-semibold">Stops</Label>
-          <div className="flex flex-wrap gap-2">
+          <Label className=" text-base font-semibold">Stops</Label>
+          <div className="pt-4 grid grid-cols-2 gap-2">
             {stopsOptions.map((option) => (
               <Button
                 key={option.value}
@@ -153,7 +153,7 @@ export function Filters({
                 }
                 size="sm"
                 onClick={() => handleStopsChange(option.value)}
-                className="flex-1 min-w-20"
+                className="min-h-9"
               >
                 {option.label}
               </Button>
@@ -165,7 +165,7 @@ export function Filters({
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <Label className="text-base font-semibold">Price Range</Label>
-            <span className="text-sm text-muted-foreground">
+            <span className="  text-sm text-muted-foreground">
               {filterState.priceRange[0] === priceRange[0] &&
               filterState.priceRange[1] === priceRange[1]
                 ? "All prices"
@@ -178,7 +178,7 @@ export function Filters({
             min={priceRange[0]}
             max={priceRange[1]}
             step={10}
-            className="w-full"
+            className="pt-4 w-full"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>${priceRange[0]}</span>

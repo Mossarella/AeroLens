@@ -2,10 +2,10 @@ import React from "react";
 
 export default function Footer() {
   return (
-    <div
-      className="h-[44px] w-full flex flex-row font-normal text-sm items-center justify-end text-muted-foreground container mx-auto px-4 max-w-7xl"
-    >
-      © Aerolens x Spotter, 2026
-    </div>
+    <footer className="w-full h-[120px] bg-primary bg-[url(/images/inflicted.png)] flex flex-row items-end justify-center py-4">
+      <div className="container w-full max-w-7xl mx-auto px-4 flex flex-row justify-end text-sm font-normal text-white">
+        © Aerolens x Spotter, 2026
+      </div>
+    </footer>
   );
 }

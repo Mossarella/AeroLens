@@ -135,29 +135,34 @@ export default function Home() {
   };
 
   return (
-    <div className="  min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-7xl">
+    <div className="min-h-screen bg-[url(/images/grilled-noise.png)]">
+      <div className="container mx-auto px-4 py-6 sm:py-8 max-w-7xl">
         {/* Header */}
-        <div className="mb-8 ">
-          <h1 className="text-4xl font-bold mb-2 text-center">Flight Search</h1>
-          <p className="font-[family-name:var(--font-yellowtail)] text-muted-foreground text-center text-2xl">
+        <header className="mb-6 sm:mb-8 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl md:text-4xl">
+            Flight Search
+          </h1>
+          <p className="mt-1.5 text-base text-muted-foreground sm:text-lg font-[family-name:var(--font-yellowtail)]">
             Find the best flight deals for your next trip
           </p>
-        </div>
+        </header>
 
-        {/* Search Form - Full Width */}
-        <div className="mb-8">
+        {/* Search Form - Front desk */}
+        <section
+          className="mb-6 sm:mb-8"
+          aria-label="Search flights"
+        >
           <FlightSearchForm
             onSubmit={handleSearch}
             isLoading={loading}
           />
-        </div>
+        </section>
 
         {/* Error Alert */}
         {error && (
-          <div className="mb-6">
-            <Card className="border-destructive bg-destructive/10">
-              <CardContent className="p-4">
+          <div className="mb-6 mx-auto max-w-4xl">
+            <Card className="border-destructive/80 bg-destructive/5 rounded-lg">
+              <CardContent className="p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start gap-3 flex-1">
                     <AlertCircle className="h-5 w-5 text-destructive mt-0.5 shrink-0" />
@@ -187,17 +192,19 @@ export default function Home() {
 
         {/* Loading State */}
         {loading && allFlights.length === 0 && (
-          <div className="space-y-6">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Searching for flights...</span>
+          <div className="space-y-6 max-w-4xl mx-auto">
+            <Card className="rounded-xl border border-border bg-card shadow-sm">
+              <CardContent className="p-6 sm:p-8">
+                <div className="flex items-center gap-3 text-muted-foreground mb-6">
+                  <Loader2 className="h-5 w-5 animate-spin shrink-0" />
+                  <span className="text-sm font-medium">
+                    Searching for flights...
+                  </span>
                 </div>
                 <div className="space-y-3">
-                  <Skeleton className="h-20 w-full" />
-                  <Skeleton className="h-20 w-full" />
-                  <Skeleton className="h-20 w-full" />
+                  <Skeleton className="h-16 w-full rounded-lg" />
+                  <Skeleton className="h-16 w-full rounded-lg" />
+                  <Skeleton className="h-16 w-full rounded-lg" />
                 </div>
               </CardContent>
             </Card>
@@ -206,9 +213,9 @@ export default function Home() {
 
         {/* Results Section - Only show if we have flights or have searched */}
         {(allFlights.length > 0 || (!loading && searchResponse !== null)) && (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 lg:gap-8">
             {/* Filters Sidebar - Desktop: Left, Mobile: Top */}
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 order-2 lg:order-1">
               <div className="lg:sticky lg:top-8">
                 <Filters
                   flights={allFlights}
@@ -221,7 +228,7 @@ export default function Home() {
             </div>
 
             {/* Main Content Area - Results and Graph */}
-            <div className="lg:col-span-3 space-y-6">
+            <div className="lg:col-span-3 space-y-6 order-1 lg:order-2 min-w-0">
               {/* Price Graph */}
               <PriceGraph
                 flights={filteredFlights}
@@ -239,9 +246,9 @@ export default function Home() {
 
         {/* Empty State - No search performed yet */}
         {!loading && searchResponse === null && !error && (
-          <Card>
-            <CardContent className="p-12 text-center">
-              <p className="text-lg text-muted-foreground">
+          <Card className="max-w-4xl mx-auto rounded-xl border border-border bg-card shadow-sm">
+            <CardContent className="p-8 sm:p-12 text-center">
+              <p className="text-base text-muted-foreground sm:text-lg">
                 Enter your search criteria above to find flights
               </p>
             </CardContent>

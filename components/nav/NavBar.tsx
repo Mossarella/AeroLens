@@ -7,6 +7,7 @@ import { Phone } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
 export default function Navbar() {
   return (
@@ -57,7 +58,9 @@ export default function Navbar() {
         <div className=" flex items-center space-x-4 h-full">
           <Link href="/contact">
             <Button
-              className=" rounded-full "
+              className={cn(
+                "mt-2 w-auto rounded-full bg-background hover:bg-primary hover:text-primary-foreground  "
+              )}
               variant="outline"
             >
               <Phone className="mr-2 h-4 w-4" />

@@ -182,6 +182,14 @@ function getFlightDisplayInfo(
   };
 }
 
+const PALETTE_BG_HEX = [
+  "#ffd358",
+  "#ffb915",
+  "#ffc107",
+  "#ffb300",
+  "#f9a825",
+] as const;
+
 export function FlightResults({
   flights,
   dictionaries,
@@ -227,12 +235,14 @@ export function FlightResults({
     return (
       <div
         className={cn(
-          "flex flex-col items-center justify-center py-12 px-4",
+          "flex flex-col items-center justify-center py-12 px-4 rounded-xl border border-border bg-card",
           className
         )}
       >
-        <Plane className="h-12 w-12 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No flights found</h3>
+        <Plane className="h-10 w-10 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold text-foreground mb-2">
+          No flights found
+        </h3>
         <p className="text-sm text-muted-foreground text-center max-w-md">
           Try adjusting your search criteria or filters to find more results.
         </p>
@@ -241,21 +251,21 @@ export function FlightResults({
   }
 
   return (
-    <div className={cn("space-y-4", className)}>
-      <div className="mb-4 flex flex-row gap-x-4 items-baseline ">
-        <h2 className="text-2xl font-semibold">
+    <div className={cn("space-y-4 selectable", className)}>
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-baseline sm:gap-x-4">
+        <h2 className="text-xl font-semibold text-foreground sm:text-2xl">
           {flights.length} {flights.length === 1 ? "flight" : "flights"} found
         </h2>
-        <p className="text-sm text-muted-foreground text-center max-w-md">
-          Click on the flight to download the boarding pass :D
+        <p className="text-sm text-muted-foreground max-w-md">
+          Click on the flight to download the boarding pass
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-1">
-        {flightDisplayInfo.map(({ flight, info }) => (
+      <div className="grid gap-4 lg:grid-cols-1">
+        {flightDisplayInfo.map(({ flight, info }, index) => (
           <div
             key={flight.id}
-            className="flex justify-center overflow-x-auto"
+            className="flex justify-center overflow-x-auto min-w-0"
           >
             <div
               role="button"
@@ -273,10 +283,18 @@ export function FlightResults({
                   (e.currentTarget as HTMLDivElement).click();
                 }
               }}
-              className="w-full cursor-pointer hover:drop-shadow-lg transition-[filter] flex flex-row"
+              className="w-full max-w-full cursor-pointer hover:shadow-md transition-shadow flex flex-row rounded-xl overflow-hidden border border-border"
               title="Click to download"
             >
-              <Card className="  flex flex-row  py-4">
+              <Card
+                className={cn(
+                  "md:flex hidden flex-row py-4 rounded-none border-r-0 border-border"
+                )}
+                style={{
+                  backgroundColor:
+                    PALETTE_BG_HEX[index % PALETTE_BG_HEX.length],
+                }}
+              >
                 <div className="shrink-0 w-[90px]  h-full flex items-center justify-center">
                   <Image
                     src="/images/barcode.svg"
@@ -290,7 +308,7 @@ export function FlightResults({
               </Card>
               <Card
                 key={flight.id}
-                className=" flex-1 flex flex-row gap-x-0"
+                className="flex-1 flex flex-row gap-x-0 rounded-none border-border min-w-0"
               >
                 <div className=" flex-1">
                   <CardHeader className="pb-3">
@@ -322,10 +340,10 @@ export function FlightResults({
                     </div>
                   </CardHeader>
 
-                  <CardContent className="flex flex-row  gap-x-16">
-                    <div className="space-y-4  flex-1">
+                  <CardContent className="flex flex-row gap-4 sm:gap-8 md:gap-16 overflow-x-auto min-w-0">
+                    <div className="space-y-4 flex-1 min-w-0">
                       {/* Outbound Flight */}
-                      <div className="flex items-center gap-8 ">
+                      <div className="flex flex-wrap items-center gap-4 sm:gap-8">
                         <div className="shrink-0">
                           <div className="flex items-center gap-2 mb-1">
                             <MapPin className="h-4 w-4 text-muted-foreground" />
@@ -413,8 +431,8 @@ export function FlightResults({
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <div className="flex items-center gap-4">
                             {info.totalStops === 0 && (
-                              <span className="text-green-600 dark:text-green-400 font-medium">
-                                Direct flight
+                              <span className="text-foreground/80 font-medium text-xs uppercase tracking-wide">
+                                Direct
                               </span>
                             )}
                             {flight.numberOfBookableSeats !== undefined && (
@@ -449,7 +467,7 @@ export function FlightResults({
                   </div>
                 </CardContent> */}
                 </div>
-                <div className=" flex flex-col items-end justify-between shrink-1  gap-0">
+                <div className=" md:flex hidden flex flex-col items-end justify-between shrink-0  gap-0">
                   <CardHeader className=" w-full  h-auto flex-1   flex flex-col items-center justify-center">
                     <Image
                       src="/images/finish.svg"

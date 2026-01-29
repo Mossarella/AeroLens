@@ -14,7 +14,7 @@ export default function NotFound() {
   };
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-2 container mx-auto px-4 max-w-7xl text-sm text-balance min-h-0">
+    <div className="flex flex-1 flex-col items-center justify-center gap-2 container mx-auto px-4 max-w-7xl text-sm text-balance min-h-0 bg-[url(/images/grilled-noise.png)]">
       <h2 className=" font-semibold">404 Not Found</h2>
       <p>Could not find the requested path :(</p>
       <Button

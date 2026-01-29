@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${lato.variable} ${poppins.variable} ${yellowtail.variable} antialiased min-h-screen flex flex-col`}
+        className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${lato.variable} ${poppins.variable} ${yellowtail.variable} antialiased min-h-screen flex flex-col bg-background`}
       >
         <nav className="flex flex-col items-center shrink-0">
           <NavBar></NavBar>
