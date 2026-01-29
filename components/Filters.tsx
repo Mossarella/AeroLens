@@ -132,18 +132,18 @@ export function Filters({
   ];
 
   return (
-    <Card className="w-full rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-      <CardHeader className="pb-4 border-b border-border">
+    <Card className="flex min-h-0 w-full flex-1 flex-col rounded-xl border border-border bg-card shadow-sm overflow-hidden lg:h-full lg:min-h-0">
+      <CardHeader className="shrink-0 pb-4 border-b border-border">
         <CardTitle className="flex items-center gap-2 text-lg font-semibold text-foreground">
           <Filter className="h-4 w-4 text-primary/80" />
           Filters
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6 p-4 sm:p-6">
+      <CardContent className="flex min-h-0 flex-1 flex-col gap-6 p-4 sm:p-6 overflow-hidden">
         {/* Stops Filter */}
-        <div className="space-y-3">
-          <Label className=" text-base font-semibold">Stops</Label>
-          <div className="pt-4 grid grid-cols-2 gap-2">
+        <div className="shrink-0 space-y-3">
+          <Label className="text-base font-semibold">Stops</Label>
+          <div className="grid grid-cols-2 gap-2 pt-4">
             {stopsOptions.map((option) => (
               <Button
                 key={option.value}
@@ -162,10 +162,10 @@ export function Filters({
         </div>
 
         {/* Price Range Filter */}
-        <div className="space-y-3">
+        <div className="shrink-0 space-y-3">
           <div className="flex items-center justify-between">
             <Label className="text-base font-semibold">Price Range</Label>
-            <span className="  text-sm text-muted-foreground">
+            <span className="text-sm text-muted-foreground">
               {filterState.priceRange[0] === priceRange[0] &&
               filterState.priceRange[1] === priceRange[1]
                 ? "All prices"
@@ -178,7 +178,7 @@ export function Filters({
             min={priceRange[0]}
             max={priceRange[1]}
             step={10}
-            className="pt-4 w-full"
+            className="w-full pt-4"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>${priceRange[0]}</span>
@@ -186,10 +186,10 @@ export function Filters({
           </div>
         </div>
 
-        {/* Airlines Filter */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <Label className="text-base font-semibold flex items-center gap-2">
+        {/* Airlines Filter - fills remaining height, list scrolls */}
+        <div className="flex min-h-0 flex-1 flex-col space-y-3">
+          <div className="flex shrink-0 items-center justify-between">
+            <Label className="flex items-center gap-2 text-base font-semibold">
               <Plane className="h-4 w-4" />
               Airlines
             </Label>
@@ -206,11 +206,11 @@ export function Filters({
             </Button>
           </div>
           {availableAirlines.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="shrink-0 text-sm text-muted-foreground">
               No airlines available
             </p>
           ) : (
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
               {availableAirlines.map((airlineCode) => {
                 const isChecked = filterState.airlines.includes(airlineCode);
                 const airlineName = getAirlineName(airlineCode, dictionaries);

@@ -257,7 +257,7 @@ export function FlightResults({
           {flights.length} {flights.length === 1 ? "flight" : "flights"} found
         </h2>
         <p className="text-sm text-muted-foreground max-w-md">
-          Click on the flight to download the boarding pass
+          Click on the flight to download the boarding pass :D
         </p>
       </div>
 
@@ -265,7 +265,7 @@ export function FlightResults({
         {flightDisplayInfo.map(({ flight, info }, index) => (
           <div
             key={flight.id}
-            className="flex justify-center overflow-x-auto min-w-0"
+            className="flex justify-center overflow-x-auto min-w-0 cursor-pointer hover:drop-shadow-md hover:rotate-[-1deg] transition-[filter,transform]"
           >
             <div
               role="button"
@@ -283,32 +283,32 @@ export function FlightResults({
                   (e.currentTarget as HTMLDivElement).click();
                 }
               }}
-              className="w-full max-w-full cursor-pointer hover:shadow-md transition-shadow flex flex-row rounded-xl overflow-hidden border border-border"
+              className="w-full max-w-full  flex flex-row "
               title="Click to download"
             >
               <Card
-                className={cn(
-                  "md:flex hidden flex-row py-4 rounded-none border-r-0 border-border"
-                )}
+                className={cn("md:flex hidden flex-row py-4 ")}
                 style={{
                   backgroundColor:
                     PALETTE_BG_HEX[index % PALETTE_BG_HEX.length],
                 }}
               >
-                <div className="shrink-0 w-[90px]  h-full flex items-center justify-center">
-                  <Image
-                    src="/images/barcode.svg"
-                    alt="barcode"
-                    // width={120}
-                    // height={100}
-                    fill
-                    className=" object-contain "
-                  />
+                <div className="shrink-0 w-[90px]   h-full flex items-center justify-center">
+                  <div className="w-[60px] h-full flex items-center justify-center  overflow-hidden">
+                    <Image
+                      src="/images/barcode.svg"
+                      alt="barcode"
+                      // width={120}
+                      // height={100}
+                      fill
+                      className=" object-contain h-full"
+                    />
+                  </div>
                 </div>
               </Card>
               <Card
                 key={flight.id}
-                className="flex-1 flex flex-row gap-x-0 rounded-none border-border min-w-0"
+                className="flex-1 flex flex-row gap-x-0  min-w-0"
               >
                 <div className=" flex-1">
                   <CardHeader className="pb-3">
@@ -343,10 +343,10 @@ export function FlightResults({
                   <CardContent className="flex flex-row gap-4 sm:gap-8 md:gap-16 overflow-x-auto min-w-0">
                     <div className="space-y-4 flex-1 min-w-0">
                       {/* Outbound Flight */}
-                      <div className="flex flex-wrap items-center gap-4 sm:gap-8">
-                        <div className="shrink-0">
+                      <div className="flex flex-wrap items-center gap-4 ">
+                        <div className="shrink-0  min-w-[90px]">
                           <div className="flex items-center gap-2 mb-1">
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            <MapPin className="h-4 w-4 text-red-500 shrink-0" />
                             <span className="font-semibold text-lg">
                               {info.departureAirport}
                             </span>
@@ -367,12 +367,12 @@ export function FlightResults({
                           </div>
                         </div>
 
-                        <div className="shrink-0 text-right">
+                        <div className="shrink-0 min-w-[90px] text-right">
                           <div className="flex items-center justify-end gap-2 mb-1">
                             <span className="font-semibold text-lg">
                               {info.arrivalAirport}
                             </span>
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
+                            <MapPin className="h-4 w-4 text-red-500 shrink-0" />
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {info.arrivalTime}
@@ -385,9 +385,9 @@ export function FlightResults({
                         <>
                           <div className="h-px bg-border"></div>
                           <div className="flex items-center gap-4">
-                            <div className="flex-1">
+                            <div className="shrink-0 min-w-[90px]">
                               <div className="flex items-center gap-2 mb-1">
-                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                <MapPin className="h-4 w-4 text-red-500 shrink-0" />
                                 <span className="font-semibold text-lg">
                                   {info.arrivalAirport}
                                 </span>
@@ -397,23 +397,23 @@ export function FlightResults({
                               </div>
                             </div>
 
-                            <div className="flex flex-col items-center shrink-0">
+                            <div className="flex flex-col items-center flex-1">
                               <div className="flex items-center gap-2 w-full">
                                 <div className="h-px bg-border flex-1"></div>
-                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <Clock className="h-3 w-3 text-muted-foreground" />
                                 <div className="h-px bg-border flex-1"></div>
                               </div>
-                              <div className="text-xs text-muted-foreground mt-1">
+                              <div className="text-[10px] text-muted-foreground mt-1">
                                 {info.returnItinerary.duration}
                               </div>
                             </div>
 
-                            <div className="flex-1 text-right">
+                            <div className="shrink-0 min-w-[90px] text-right">
                               <div className="flex items-center justify-end gap-2 mb-1">
                                 <span className="font-semibold text-lg">
                                   {info.departureAirport}
                                 </span>
-                                <MapPin className="h-4 w-4 text-muted-foreground" />
+                                <MapPin className="h-4 w-4 text-red-500 shrink-0" />
                               </div>
                               <div className="text-sm text-muted-foreground">
                                 {info.returnItinerary.segments}{" "}
@@ -436,7 +436,7 @@ export function FlightResults({
                               </span>
                             )}
                             {flight.numberOfBookableSeats !== undefined && (
-                              <span>
+                              <span className="text-green-600 font-medium">
                                 {flight.numberOfBookableSeats}{" "}
                                 {flight.numberOfBookableSeats === 1
                                   ? "seat"

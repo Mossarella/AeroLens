@@ -250,359 +250,400 @@ export function FlightSearchForm({
   const paxNum = (v: string) => parseInt(v.replace(/^pax-/, ""), 10);
 
   return (
-    <form
-      onSubmit={handleSubmit(onFormSubmit)}
-      className="w-full space-y-6 rounded-lg border bg-card p-6 shadow-sm"
-    >
-      <div className="space-y-4">
-        {/* Origin: Country → Airport */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Plane className="h-4 w-4" />
-              From
-            </Label>
-            <div className="grid gap-2 grid-cols-2">
-              <Select
-                value={originCountryCode || undefined}
-                onValueChange={(value) => {
-                  setOriginCountryCode(value);
-                  setValue("origin", "");
-                }}
-              >
-                <SelectTrigger
-                  id="origin-country"
-                  className="col-span-1"
-                >
-                  <SelectValue placeholder="Country" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((c) => (
-                    <SelectItem
-                      key={c.code}
-                      value={c.code}
-                    >
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                key={originCountryCode || "origin-no-country"}
-                value={origin || undefined}
-                onValueChange={(value) => {
-                  setValue("origin", value);
-                  trigger("origin");
-                }}
-                disabled={!originCountryCode || loadingOriginAirports}
-              >
-                <SelectTrigger
-                  id="origin"
-                  className={`col-span-1 ${
-                    errors.origin ? "border-destructive" : ""
-                  }`}
-                >
-                  <SelectValue
-                    placeholder={loadingOriginAirports ? "Loading…" : "Airport"}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {!loadingOriginAirports && originAirports.length === 0 ? (
-                    <SelectItem
-                      value={NO_AIRPORTS_PLACEHOLDER}
-                      disabled
-                    >
-                      No available airport at the moment
-                    </SelectItem>
-                  ) : (
-                    originAirports.map((a) => (
-                      <SelectItem
-                        key={a.iataCode}
-                        value={a.iataCode}
-                      >
-                        {a.iataCode} – {a.name}
-                        {a.cityName ? ` (${a.cityName})` : ""}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            {errors.origin && (
-              <p className="text-sm text-destructive">
-                {errors.origin.message}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label className="flex items-center gap-2">
-              <Plane className="h-4 w-4 rotate-90" />
-              To
-            </Label>
-            <div className="grid gap-2 grid-cols-2">
-              <Select
-                value={destinationCountryCode || undefined}
-                onValueChange={(value) => {
-                  setDestinationCountryCode(value);
-                  setValue("destination", "");
-                }}
-              >
-                <SelectTrigger
-                  id="destination-country"
-                  className="col-span-1"
-                >
-                  <SelectValue placeholder="Country" />
-                </SelectTrigger>
-                <SelectContent>
-                  {countries.map((c) => (
-                    <SelectItem
-                      key={c.code}
-                      value={c.code}
-                    >
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                key={destinationCountryCode || "destination-no-country"}
-                value={destination || undefined}
-                onValueChange={(value) => {
-                  setValue("destination", value);
-                  trigger("destination");
-                }}
-                disabled={!destinationCountryCode || loadingDestinationAirports}
-              >
-                <SelectTrigger
-                  id="destination"
-                  className={`col-span-1 ${
-                    errors.destination ? "border-destructive" : ""
-                  }`}
-                >
-                  <SelectValue
-                    placeholder={
-                      loadingDestinationAirports ? "Loading…" : "Airport"
-                    }
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {!loadingDestinationAirports &&
-                  destinationAirports.length === 0 ? (
-                    <SelectItem
-                      value={NO_AIRPORTS_PLACEHOLDER}
-                      disabled
-                    >
-                      No available airport at the moment
-                    </SelectItem>
-                  ) : (
-                    destinationAirports.map((a) => (
-                      <SelectItem
-                        key={a.iataCode}
-                        value={a.iataCode}
-                      >
-                        {a.iataCode} – {a.name}
-                        {a.cityName ? ` (${a.cityName})` : ""}
-                      </SelectItem>
-                    ))
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
-            {errors.destination && (
-              <p className="text-sm text-destructive">
-                {errors.destination.message}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Dates */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label
-              htmlFor="departureDate"
-              className="flex items-center gap-2"
-            >
-              <Calendar className="h-4 w-4" />
-              Departure Date
-            </Label>
-            <Input
-              id="departureDate"
-              type="date"
-              min={getTodayDate()}
-              className={errors.departureDate ? "border-destructive" : ""}
-              {...register("departureDate", {
-                onChange: () => {
-                  // Re-validate return date when departure date changes
-                  if (returnDate) {
-                    trigger("returnDate");
-                  }
-                },
-              })}
-            />
-            {errors.departureDate && (
-              <p className="text-sm text-destructive">
-                {errors.departureDate.message}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label
-              htmlFor="returnDate"
-              className="flex items-center gap-2"
-            >
-              <Calendar className="h-4 w-4" />
-              Return Date (Optional)
-            </Label>
-            <Input
-              id="returnDate"
-              type="date"
-              min={getMinReturnDate()}
-              className={errors.returnDate ? "border-destructive" : ""}
-              {...register("returnDate")}
-            />
-            {errors.returnDate && (
-              <p className="text-sm text-destructive">
-                {errors.returnDate.message}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Passengers */}
-        <div className="space-y-2">
-          <Label className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Passengers
-          </Label>
-          <div className="grid gap-4 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label
-                htmlFor="adults"
-                className="text-xs text-muted-foreground"
-              >
-                Adults
-              </Label>
-              <Select
-                value={watch("adults").toString()}
-                onValueChange={(value) => {
-                  setValue("adults", parseInt(value, 10));
-                  trigger("adults");
-                }}
-              >
-                <SelectTrigger
-                  id="adults"
-                  className={errors.adults ? "border-destructive" : ""}
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {generateNumberOptions(9).map((num) => (
-                    <SelectItem
-                      key={num}
-                      value={num.toString()}
-                    >
-                      {num}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.adults && (
-                <p className="text-sm text-destructive">
-                  {errors.adults.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="children"
-                className="text-xs text-muted-foreground"
-              >
-                Children (Age 2-11)
-              </Label>
-              <Select
-                value={paxVal(watch("children") ?? 0)}
-                onValueChange={(value) => {
-                  setValue("children", paxNum(value));
-                  trigger("children");
-                }}
-              >
-                <SelectTrigger
-                  id="children"
-                  className={errors.children ? "border-destructive" : ""}
-                >
-                  <span className="line-clamp-1">{watch("children") ?? 0}</span>
-                </SelectTrigger>
-                <SelectContent>
-                  {generateNumberOptions(9).map((num) => (
-                    <SelectItem
-                      key={num}
-                      value={paxVal(num)}
-                    >
-                      {num}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.children && (
-                <p className="text-sm text-destructive">
-                  {errors.children.message}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="infants"
-                className="text-xs text-muted-foreground"
-              >
-                Infants (Age under 2)
-              </Label>
-              <Select
-                value={paxVal(watch("infants") ?? 0)}
-                onValueChange={(value) => {
-                  setValue("infants", paxNum(value));
-                  trigger("infants");
-                }}
-              >
-                <SelectTrigger
-                  id="infants"
-                  className={errors.infants ? "border-destructive" : ""}
-                >
-                  <span className="line-clamp-1">{watch("infants") ?? 0}</span>
-                </SelectTrigger>
-                <SelectContent>
-                  {generateNumberOptions(9).map((num) => (
-                    <SelectItem
-                      key={num}
-                      value={paxVal(num)}
-                    >
-                      {num}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.infants && (
-                <p className="text-sm text-destructive">
-                  {errors.infants.message}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Submit Button */}
-      <Button
-        type="submit"
-        className="w-full"
-        disabled={isLoading}
+    <div className="flight-search-form-dark rounded-xl overflow-hidden [color-scheme:dark]">
+      <style>{`
+        .flight-search-form-dark {
+          background-color: #0a0a0a !important;
+          color: #fafafa !important;
+        }
+        .flight-search-form-dark form {
+          background-color: #171717 !important;
+          color: #fafafa !important;
+          border-color: #404040 !important;
+        }
+        .flight-search-form-dark label,
+        .flight-search-form-dark .text-muted-foreground {
+          color: #a3a3a3 !important;
+        }
+        .flight-search-form-dark input,
+        .flight-search-form-dark button:not([type="submit"]) {
+          background-color: #323232 !important;
+          color: #fafafa !important;
+          border-color: #404040 !important;
+        }
+        .flight-search-form-dark input::placeholder {
+          color: #737373 !important;
+        }
+        .flight-search-form-dark button[type="submit"] {
+          background-color: #fafafa !important;
+          color: #0a0a0a !important;
+        }
+        .flight-search-form-dark button[type="submit"]:hover {
+          background-color: #e5e5e5 !important;
+        }
+      `}</style>
+      <form
+        onSubmit={handleSubmit(onFormSubmit)}
+        className="w-full space-y-6 rounded-lg border p-6 shadow-sm"
       >
-        {isLoading ? "Searching..." : "Search Flights"}
-      </Button>
-    </form>
+        <div className="space-y-4">
+          {/* Origin: Country → Airport */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Plane className="h-4 w-4" />
+                From
+              </Label>
+              <div className="grid gap-2 grid-cols-2">
+                <Select
+                  value={originCountryCode || undefined}
+                  onValueChange={(value) => {
+                    setOriginCountryCode(value);
+                    setValue("origin", "");
+                  }}
+                >
+                  <SelectTrigger
+                    id="origin-country"
+                    className="col-span-1"
+                  >
+                    <SelectValue placeholder="Country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((c) => (
+                      <SelectItem
+                        key={c.code}
+                        value={c.code}
+                      >
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  key={originCountryCode || "origin-no-country"}
+                  value={origin || undefined}
+                  onValueChange={(value) => {
+                    setValue("origin", value);
+                    trigger("origin");
+                  }}
+                  disabled={!originCountryCode || loadingOriginAirports}
+                >
+                  <SelectTrigger
+                    id="origin"
+                    className={`col-span-1 ${
+                      errors.origin ? "border-destructive" : ""
+                    }`}
+                  >
+                    <SelectValue
+                      placeholder={
+                        loadingOriginAirports ? "Loading…" : "Airport"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {!loadingOriginAirports && originAirports.length === 0 ? (
+                      <SelectItem
+                        value={NO_AIRPORTS_PLACEHOLDER}
+                        disabled
+                      >
+                        No available airport at the moment
+                      </SelectItem>
+                    ) : (
+                      originAirports.map((a) => (
+                        <SelectItem
+                          key={a.iataCode}
+                          value={a.iataCode}
+                        >
+                          {a.iataCode} – {a.name}
+                          {a.cityName ? ` (${a.cityName})` : ""}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              {errors.origin && (
+                <p className="text-sm text-destructive">
+                  {errors.origin.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Plane className="h-4 w-4 rotate-90" />
+                To
+              </Label>
+              <div className="grid gap-2 grid-cols-2">
+                <Select
+                  value={destinationCountryCode || undefined}
+                  onValueChange={(value) => {
+                    setDestinationCountryCode(value);
+                    setValue("destination", "");
+                  }}
+                >
+                  <SelectTrigger
+                    id="destination-country"
+                    className="col-span-1"
+                  >
+                    <SelectValue placeholder="Country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map((c) => (
+                      <SelectItem
+                        key={c.code}
+                        value={c.code}
+                      >
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Select
+                  key={destinationCountryCode || "destination-no-country"}
+                  value={destination || undefined}
+                  onValueChange={(value) => {
+                    setValue("destination", value);
+                    trigger("destination");
+                  }}
+                  disabled={
+                    !destinationCountryCode || loadingDestinationAirports
+                  }
+                >
+                  <SelectTrigger
+                    id="destination"
+                    className={`col-span-1 ${
+                      errors.destination ? "border-destructive" : ""
+                    }`}
+                  >
+                    <SelectValue
+                      placeholder={
+                        loadingDestinationAirports ? "Loading…" : "Airport"
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {!loadingDestinationAirports &&
+                    destinationAirports.length === 0 ? (
+                      <SelectItem
+                        value={NO_AIRPORTS_PLACEHOLDER}
+                        disabled
+                      >
+                        No available airport at the moment
+                      </SelectItem>
+                    ) : (
+                      destinationAirports.map((a) => (
+                        <SelectItem
+                          key={a.iataCode}
+                          value={a.iataCode}
+                        >
+                          {a.iataCode} – {a.name}
+                          {a.cityName ? ` (${a.cityName})` : ""}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              {errors.destination && (
+                <p className="text-sm text-destructive">
+                  {errors.destination.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Dates */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label
+                htmlFor="departureDate"
+                className="flex items-center gap-2"
+              >
+                <Calendar className="h-4 w-4" />
+                Departure Date
+              </Label>
+              <Input
+                id="departureDate"
+                type="date"
+                min={getTodayDate()}
+                className={errors.departureDate ? "border-destructive" : ""}
+                {...register("departureDate", {
+                  onChange: () => {
+                    // Re-validate return date when departure date changes
+                    if (returnDate) {
+                      trigger("returnDate");
+                    }
+                  },
+                })}
+              />
+              {errors.departureDate && (
+                <p className="text-sm text-destructive">
+                  {errors.departureDate.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="returnDate"
+                className="flex items-center gap-2"
+              >
+                <Calendar className="h-4 w-4" />
+                Return Date (Optional)
+              </Label>
+              <Input
+                id="returnDate"
+                type="date"
+                min={getMinReturnDate()}
+                className={errors.returnDate ? "border-destructive" : ""}
+                {...register("returnDate")}
+              />
+              {errors.returnDate && (
+                <p className="text-sm text-destructive">
+                  {errors.returnDate.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Passengers */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Passengers
+            </Label>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="adults"
+                  className="text-xs text-muted-foreground"
+                >
+                  Adults
+                </Label>
+                <Select
+                  value={watch("adults").toString()}
+                  onValueChange={(value) => {
+                    setValue("adults", parseInt(value, 10));
+                    trigger("adults");
+                  }}
+                >
+                  <SelectTrigger
+                    id="adults"
+                    className={errors.adults ? "border-destructive" : ""}
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {generateNumberOptions(9).map((num) => (
+                      <SelectItem
+                        key={num}
+                        value={num.toString()}
+                      >
+                        {num}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.adults && (
+                  <p className="text-sm text-destructive">
+                    {errors.adults.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="children"
+                  className="text-xs text-muted-foreground"
+                >
+                  Children (Age 2-11)
+                </Label>
+                <Select
+                  value={paxVal(watch("children") ?? 0)}
+                  onValueChange={(value) => {
+                    setValue("children", paxNum(value));
+                    trigger("children");
+                  }}
+                >
+                  <SelectTrigger
+                    id="children"
+                    className={errors.children ? "border-destructive" : ""}
+                  >
+                    <span className="line-clamp-1">
+                      {watch("children") ?? 0}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {generateNumberOptions(9).map((num) => (
+                      <SelectItem
+                        key={num}
+                        value={paxVal(num)}
+                      >
+                        {num}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.children && (
+                  <p className="text-sm text-destructive">
+                    {errors.children.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="infants"
+                  className="text-xs text-muted-foreground"
+                >
+                  Infants (Age under 2)
+                </Label>
+                <Select
+                  value={paxVal(watch("infants") ?? 0)}
+                  onValueChange={(value) => {
+                    setValue("infants", paxNum(value));
+                    trigger("infants");
+                  }}
+                >
+                  <SelectTrigger
+                    id="infants"
+                    className={errors.infants ? "border-destructive" : ""}
+                  >
+                    <span className="line-clamp-1">
+                      {watch("infants") ?? 0}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {generateNumberOptions(9).map((num) => (
+                      <SelectItem
+                        key={num}
+                        value={paxVal(num)}
+                      >
+                        {num}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.infants && (
+                  <p className="text-sm text-destructive">
+                    {errors.infants.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={isLoading}
+        >
+          {isLoading ? "Searching..." : "Search Flights"}
+        </Button>
+      </form>
+    </div>
   );
 }
