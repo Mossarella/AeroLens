@@ -1,108 +1,103 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+introducing
 
-## Flight Search Engine
+# Aerolens
 
-A modern flight search application built with Next.js, featuring real-time flight search, filtering, and price visualization. The app integrates with the Amadeus API for flight data, with automatic fallback to mock data when the API is unavailable.
+**A web developer challenge · frontend position**
 
-## Setup Instructions
+This project was rapidly prototyped using the Next.js framework for full-stack functionality, with Tailwind CSS and ShadCN-style components (Radix UI) for quick styling and responsiveness. Flight data is powered by the Amadeus API, with automatic fallback to mock data when the API is unavailable. Built with React Hook Form and Zod for form validation, Recharts for price visualization, and Axios for API calls.
 
-### Prerequisites
+**You can try for yourself here:** [https://aero-lens-kohl.vercel.app/](https://aero-lens-kohl.vercel.app/)
 
-- Node.js 18+ and npm/yarn/pnpm/bun
-- Amadeus API credentials (optional - app will use mock data if not configured)
+## Basic requirement checklist
 
-### Installation
+- ✔️ A complete flight search experience. Built on a solid CSS foundation with Tailwind and component primitives. Designed to be scalable for future enhancement in both code and styling.
+- ✔️ Full search and filter flow. You can filter by stops (non-stop, 1 stop, 2+), price range (slider), and airlines (multi-select). Filters reset after each new search. Data is sorted by departure time by default.
+- ✔️ Live price graph
+- ✔️ Fully responsive for various device sizes. Layout adapts from mobile to desktop;
 
-1. **Clone the repository** (if applicable) and navigate to the project directory:
+## Non-functional requirement checklist
+
+- 🎯 Graceful fallback. With Amadeus API integration, live data is used when credentials are set; otherwise mock data is served so the app always runs.
+- 🎯 Fast, client-driven filtering. Stops, price, and airline filters run in the browser for instant updates without extra API calls.
+
+## Additional enhancements
+
+- ⭐ Sticky filter sidebar on desktop for persistent filters while scrolling through many results.
+- ⭐ Interactive price trend chart (Recharts) with horizontal scroll for large result sets, tooltips, and configurable axis ticks.
+- ⭐ Downloadable boarding-pass style image (PNG) per flight using html2canvas-pro. To ensure you will purchase the ticket sooner or later, or even post it to your instagram.
+- ⭐ Loading and empty states with consistent card layout; error alert with dismiss.
+- ⭐ Form validation (origin, destination, dates, travelers) with React Hook Form and Zod.
+- ⭐ Catch-all 404 page and shared layout (navbar, footer) across main, loading, and not-found.
+- ⭐ API route structure for flights search and location endpoints (airports, countries) ready for extension.
+
+---
+
+## Prerequisites
+
+- Node.js 18+
+- npm, yarn, pnpm, or bun
+- Amadeus API credentials (optional—app uses mock data if unset or on API error)
+
+## Installation
+
+1. Clone the repository and navigate to the project directory:
+
    ```bash
    cd aerolens
    ```
 
-2. **Install dependencies**:
+2. Install dependencies:
+
    ```bash
    npm install
-   # or
-   yarn install
-   # or
-   pnpm install
    ```
 
-3. **Set up environment variables**:
-   
-   Create a `.env.local` file in the `aerolens` directory (you can copy from `.env.example`):
-   ```bash
-   cp .env.example .env.local
-   ```
-   
-   Then edit `.env.local` and add your Amadeus API credentials:
+3. Set up environment variables (optional for mock data):
+
+   - Copy `.env.example` to `.env.local`
+   - Add Amadeus credentials for live API results:
+
    ```env
-   AMADEUS_CLIENT_ID=your_amadeus_client_id_here
-   AMADEUS_CLIENT_SECRET=your_amadeus_client_secret_here
+   AMADEUS_CLIENT_ID=your_client_id
+   AMADEUS_CLIENT_SECRET=your_client_secret
    ```
-   
-   **Getting Amadeus API Credentials:**
-   - Visit [Amadeus for Developers](https://developers.amadeus.com/)
-   - Sign up for a free account
-   - Create a new app to get your `Client ID` and `Client Secret`
-   - Use the **test environment** credentials for development
-   - The app uses the Amadeus test API by default (`test.api.amadeus.com`)
-   
-   **Note:** If you don't have Amadeus credentials or prefer to test without them, the app will automatically fall back to mock data when the API is unavailable. You can leave the environment variables empty or skip this step entirely.
 
-4. **Run the development server**:
+   Get test credentials at [Amadeus for Developers](https://developers.amadeus.com/). Leave variables empty to use mock data.
+
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000).
+
+## Environment variables
+
+| Variable                    | Description               | Required               |
+| --------------------------- | ------------------------- | ---------------------- |
+| `AMADEUS_CLIENT_ID`         | Amadeus API Client ID     | No (mock fallback)     |
+| `AMADEUS_CLIENT_SECRET`     | Amadeus API Client Secret | No (mock fallback)     |
+| `AMADEUS_TOKEN_URL`         | OAuth token URL           | No (default: test API) |
+| `AMADEUS_FLIGHT_OFFERS_URL` | Flight offers API URL     | No (default: test API) |
+
+Do not commit real credentials. For production, set these in your hosting platform’s environment (e.g. Vercel).
+
+## Scripts
+
+- `npm run dev` — Start development server
+- `npm run build` — Production build
+- `npm run start` — Run production server
+- `npm run lint` — Run ESLint
+
+## Deployment
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm run build
+npm run start
 ```
 
-5. **Open your browser** and navigate to [http://localhost:3000](http://localhost:3000)
+Or deploy to [Vercel](https://vercel.com) (or similar) and configure the environment variables in the project settings.
 
-### Environment Variables
+---
 
-The following environment variables are used by the application:
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `AMADEUS_CLIENT_ID` | Your Amadeus API Client ID | No (falls back to mock data) |
-| `AMADEUS_CLIENT_SECRET` | Your Amadeus API Client Secret | No (falls back to mock data) |
-
-**Important:** 
-- The `.env.local` file is git-ignored and will not be committed to version control
-- Never commit your actual API credentials to the repository
-- For production deployments, set these variables in your hosting platform's environment settings
-
-### Features
-
-- ✈️ Real-time flight search with debounced input
-- 🔍 Advanced filtering (stops, price range, airlines)
-- 📊 Interactive price visualization with Recharts
-- 📱 Fully responsive design
-- 🎨 Modern UI built with ShadCN components
-- 🔄 Automatic fallback to mock data when API is unavailable
-
-## Getting Started
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+![Preview 1](public/images/mock1.png)
+![Preview 2](public/images/mock2.png)
