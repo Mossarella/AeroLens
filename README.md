@@ -8,6 +8,8 @@ This project was rapidly prototyped using the Next.js framework for full-stack f
 
 **You can try for yourself here:** [https://aero-lens-kohl.vercel.app/](https://aero-lens-kohl.vercel.app/)
 
+If you cant find the country/ airport, Try Italy-Milan to Thailand-BKK. Pick the date to be upcoming date. Would show you best results.
+
 ## Basic requirement checklist
 
 - ✔️ A complete flight search experience. Built on a solid CSS foundation with Tailwind and component primitives. Designed to be scalable for future enhancement in both code and styling.

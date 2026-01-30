@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useRef, useState, useCallback } from "react";
 import {
   LineChart,
   Line,
@@ -117,11 +117,11 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
 
     return (
       <div
-        className="border border-border rounded-lg shadow-lg p-3 min-w-50"
+        className="border border-border rounded-lg shadow-lg p-3 min-w-50 bg-card"
         style={{
           position: "relative",
           zIndex: 1000,
-          backgroundColor: "hsl(var(--card))",
+          backgroundColor: "var(--card)",
           boxShadow:
             "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
           isolation: "isolate",
@@ -245,8 +245,8 @@ function processFlightData(
 
 /** Enable horizontal scroll when data points exceed this count. */
 const SCROLL_THRESHOLD = 20;
-/** Pixel width per data point when scroll is active (more space = less cramped). */
-const PX_PER_POINT = 22;
+/** Pixel width per data point when scroll is active (larger = points further apart, easier hover). */
+const PX_PER_POINT = 48;
 
 export function PriceGraph({
   flights,
@@ -269,7 +269,7 @@ export function PriceGraph({
   const dotRadius = chartData.length > 50 ? 2 : chartData.length > 30 ? 3 : 4;
   const dotConfig = { fill: "var(--primary)", r: dotRadius };
 
-  // Calculate price range for Y-axis
+  // Calculate price range for Y-axis (needed before scroll handler)
   const priceRange = useMemo(() => {
     if (chartData.length === 0) {
       return { min: 0, max: 1000 };
@@ -281,6 +281,58 @@ export function PriceGraph({
 
     return { min, max };
   }, [chartData]);
+
+  // When chart is scrollable: nearest point in 2D (x + y) so close/flat points are hoverable
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const chartWrapperRef = useRef<HTMLDivElement>(null); // inner div = exact chart bounds
+  const activeIndexRef = useRef<number | null>(null);
+  const [scrollActiveIndex, setScrollActiveIndex] = useState<number | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
+
+  const PLOT_MARGIN_TOP = 5;
+  const PLOT_MARGIN_LEFT = 56; // YAxis width in LineChart
+  const PLOT_MARGIN_RIGHT = 30;
+  const X_AXIS_HEIGHT = 48;
+  const CHART_HEIGHT_PX = 300;
+  const plotHeightPx = CHART_HEIGHT_PX - PLOT_MARGIN_TOP - X_AXIS_HEIGHT;
+
+  const handleScrollAreaMouseLeave = useCallback(() => {
+    activeIndexRef.current = null;
+    setScrollActiveIndex(null);
+    setTooltipPosition(null);
+  }, []);
+
+  // In scroll mode: overlay hit zones so hover uses DOM (no coordinate mismatch)
+  const hitSizePx = 44;
+  const plotWidthForOverlay =
+    useScroll && chartWidth
+      ? chartWidth - PLOT_MARGIN_LEFT - PLOT_MARGIN_RIGHT
+      : 0;
+  const handleHitZoneEnter = useCallback(
+    (i: number) => {
+      const chartEl = chartWrapperRef.current;
+      if (!chartEl || !chartData[i]) return;
+      const chartRect = chartEl.getBoundingClientRect();
+      const n = chartData.length;
+      const plotWidth = Math.max(1, chartRect.width - PLOT_MARGIN_LEFT - PLOT_MARGIN_RIGHT);
+      const { min, max } = priceRange;
+      const priceSpan = max - min || 1;
+      const pointX =
+        n <= 1 ? plotWidth / 2 : ((i + 0.5) / n) * plotWidth;
+      const norm = (chartData[i].priceValue - min) / priceSpan;
+      const pointY = (1 - norm) * plotHeightPx;
+      activeIndexRef.current = i;
+      setScrollActiveIndex(i);
+      setTooltipPosition({
+        x: chartRect.left + PLOT_MARGIN_LEFT + pointX,
+        y: chartRect.top + PLOT_MARGIN_TOP + pointY,
+      });
+    },
+    [chartData, priceRange, plotHeightPx]
+  );
 
   if (chartData.length === 0) {
     return (
@@ -315,22 +367,97 @@ export function PriceGraph({
           {chartData.length === 1 ? "flight" : "flights"})
         </p>
       </CardHeader>
-      <CardContent className="pb-4 min-w-0">
+      <CardContent className="pb-4 min-w-0 relative">
+        {/* When scrollable, show tooltip pinned to the active point (stable = no flicker) */}
+        {useScroll &&
+          scrollActiveIndex !== null &&
+          tooltipPosition !== null &&
+          chartData[scrollActiveIndex] && (
+            <div
+              className="pointer-events-none fixed z-[1001] -translate-x-1/2 -translate-y-[calc(100%+8px)]"
+              style={{
+                left: tooltipPosition.x,
+                top: tooltipPosition.y,
+              }}
+            >
+              <CustomTooltip
+                active
+                payload={[
+                  {
+                    value: chartData[scrollActiveIndex].priceValue,
+                    payload: chartData[scrollActiveIndex],
+                  },
+                ]}
+                label={chartData[scrollActiveIndex].time}
+              />
+            </div>
+          )}
         <div
+          ref={scrollContainerRef}
           className={cn(
             "mt-1",
             useScroll &&
               "w-full min-w-0 overflow-x-auto overflow-y-hidden overscroll-x-contain"
           )}
+          onMouseLeave={useScroll ? handleScrollAreaMouseLeave : undefined}
         >
           <div
-            className={useScroll ? "inline-block" : ""}
+            ref={chartWrapperRef}
+            className={cn(useScroll ? "inline-block relative" : "")}
             style={useScroll ? { minWidth: chartWidth } : undefined}
           >
-            <ResponsiveContainer
-              width={useScroll ? chartWidth! : "100%"}
-              height={300}
+            {/* In scroll mode: hit zones first, then chart with pointer-events-none so overlay receives hover */}
+            {useScroll &&
+              plotWidthForOverlay > 0 &&
+              chartData.length > 0 && (
+                <div
+                  className="absolute z-10"
+                  style={{
+                    left: PLOT_MARGIN_LEFT,
+                    top: PLOT_MARGIN_TOP,
+                    width: plotWidthForOverlay,
+                    height: plotHeightPx,
+                    pointerEvents: "auto",
+                  }}
+                  onMouseLeave={handleScrollAreaMouseLeave}
+                  aria-hidden
+                >
+                  {chartData.map((_, i) => {
+                    const n = chartData.length;
+                    const { min, max } = priceRange;
+                    const priceSpan = max - min || 1;
+                    const pointX =
+                      n <= 1
+                        ? plotWidthForOverlay / 2
+                        : ((i + 0.5) / n) * plotWidthForOverlay;
+                    const norm =
+                      (chartData[i].priceValue - min) / priceSpan;
+                    const pointY = (1 - norm) * plotHeightPx;
+                    const half = hitSizePx / 2;
+                    return (
+                      <div
+                        key={i}
+                        className="absolute cursor-pointer"
+                        style={{
+                          left: pointX - half,
+                          top: pointY - half,
+                          width: hitSizePx,
+                          height: hitSizePx,
+                        }}
+                        onMouseEnter={() => handleHitZoneEnter(i)}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            <div
+              className={useScroll ? "pointer-events-none" : ""}
+              style={useScroll ? { position: "relative", zIndex: 0 } : undefined}
             >
+              <ResponsiveContainer
+                width={useScroll ? chartWidth! : "100%"}
+                height={300}
+              >
               <LineChart
                 data={chartData}
                 margin={{
@@ -371,6 +498,7 @@ export function PriceGraph({
                 <Tooltip
                   content={<CustomTooltip />}
                   cursor={false}
+                  active={useScroll ? false : undefined}
                   wrapperStyle={{
                     zIndex: 1000,
                     backgroundColor: "var(--card)",
@@ -397,6 +525,7 @@ export function PriceGraph({
                 />
               </LineChart>
             </ResponsiveContainer>
+            </div>
           </div>
         </div>
       </CardContent>
