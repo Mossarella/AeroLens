@@ -8,6 +8,8 @@ This project was rapidly prototyped using the Next.js framework for full-stack f
 
 **You can try for yourself here:** [https://aero-lens-kohl.vercel.app/](https://aero-lens-kohl.vercel.app/)
 
+**Need a video walkthrough? Say less !:** [https://youtu.be/zbb4R3PwlDY?si=hMRjLxon8Gyn2txw](https://youtu.be/zbb4R3PwlDY?si=hMRjLxon8Gyn2txw)
+
 If you cant find the country/ airport, Try Italy-Milan to Thailand-BKK. Pick the date to be upcoming date. Would show you best results.
 
 ## Basic requirement checklist
