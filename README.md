@@ -2,7 +2,6 @@ introducing
 
 # Aerolens
 
-**A web developer challenge · frontend position**
 
 This project was rapidly prototyped using the Next.js framework for full-stack functionality, with Tailwind CSS and ShadCN-style components (Radix UI) for quick styling and responsiveness. Flight data is powered by the Amadeus API, with automatic fallback to mock data when the API is unavailable. Built with React Hook Form and Zod for form validation, Recharts for price visualization, and Axios for API calls.
 
